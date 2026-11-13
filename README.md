@@ -1,36 +1,53 @@
-# MiniLang — compilador (Etapas 2 e 3) em React + TypeScript
+# MiniLang
 
-Verifica e executa regras de alerta escritas pelos técnicos antes de enviá-las ao equipamento.
+Compilador da MiniLang, a linguagem que os técnicos usam para escrever regras de alerta dos equipamentos.
+Ele lê a regra, aponta os erros (com linha e coluna) e só aprova a regra que estiver correta.
 
-## Onde está cada parte
+<img width="1920" height="950" alt="image" src="https://github.com/user-attachments/assets/e67023a1-87d4-4a83-ace5-b6c10d71a303" />
 
-A **inteligência** (compilador) fica toda em `src/compiler/`, uma pasta por fase, e não depende de React.
-A **interface** fica em `src/ui/` e só chama `compilar(codigo, entrada)`.
+## Como funciona
 
-```
-src/compiler/
-  types.ts                  tipos compartilhados (Token, Diagnostico, Tipo)
-  lexico/lexer.ts           1. LÉXICO     texto  -> tokens            (Etapa 2)
-  sintatico/ast.ts          2. SINTÁTICO  formato dos nós da árvore
-  sintatico/parser.ts       2. SINTÁTICO  tokens -> árvore (LL(1))    (Etapa 3)
-  sintatico/tree.ts         2. SINTÁTICO  árvore -> desenho / texto
-  semantico/symbols.ts      3. SEMÂNTICO  tabela de símbolos e escopos
-  semantico/semantic.ts     3. SEMÂNTICO  verificações de declaração e tipos
-  execucao/interpretador.ts 4. EXECUÇÃO   roda a regra aprovada
-  index.ts                  liga as fases (compilar)
-  exemplos.ts               programas aceitos e recusados
-  compiler.test.ts          testes
-src/ui/
-  App.tsx       tela principal (estado)
-  Editor.tsx    quadro 1: código MiniLang
-  Saida.tsx     quadro 2: entrada dos `leia` e resultado do `escreva`
-  Analise.tsx   quadro 3: fases, mensagens, árvore, símbolos, tokens
-  Arvore.tsx    desenho da árvore
-  styles.css
-docs/           Etapa_3.md (documento) e evidencias.md (saída real)
-```
+A regra passa por três fases, uma depois da outra. Se uma fase encontra erro, as seguintes não rodam.
+
+1. **Léxica**: separa o texto em tokens (palavras, números, símbolos). Arquivo: `src/compiler/lexico/lexer.ts`
+2. **Sintática**: confere se os tokens estão na ordem certa e monta a árvore do programa. Arquivo: `src/compiler/sintatico/parser.ts`
+3. **Semântica**: confere se as variáveis foram declaradas, se estão no bloco certo e se os tipos combinam. Arquivos: `src/compiler/semantico/semantic.ts` e `symbols.ts`
+
+Se a regra for aprovada, a tela também consegue executá-la com valores de teste.
+
+## Como executar
+
+É preciso ter o **Node.js 22** (ou mais novo) instalado.
+
+Dentro da pasta do projeto, rode:
 
 ```bash
-npm install && npm run dev
+npm install
+npm run dev
+```
+
+Depois abra no navegador o endereço que aparecer no terminal (normalmente http://localhost:5173).
+
+Para rodar os testes automáticos:
+
+```bash
 npm test
+```
+
+## Como usar a tela
+
+- **Código MiniLang**: escreva a regra ou escolha um exemplo pronto na lista. A análise é refeita a cada alteração.
+- **Resultado**: digite os valores para os `leia` (ex.: `6 4`) e veja o que o `escreva` mostra.
+- **Análise**: mostra se a regra foi aprovada ou recusada e tem as abas Árvore, Mensagens, Símbolos e Tokens. Clicar em uma mensagem de erro leva até o local no código.
+
+## Exemplo de regra
+
+```
+real temperatura ;
+leia ( temperatura ) ;
+se ( temperatura > 35.5 ) {
+  escreva ( 1 ) ;
+} senao {
+  escreva ( 0 ) ;
+}
 ```
